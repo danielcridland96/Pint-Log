@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <title>Pint Log</title>
+  <meta name="description" content="Tap-to-log drink tracker with UK units, spend and reports.">
+  <meta name="theme-color" content="#16201A">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Pint Log">
+  <link rel="icon" href="/icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="/icon.svg">
+  <link rel="manifest" href="/manifest.webmanifest">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bitter:wght@600;800&family=Figtree:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500&display=swap">
+</head>
+<body>
+  <!-- Sign-in -->
+  <section id="v-auth" class="auth" hidden>
+    <img src="/icon.svg" alt="" width="104" height="104" style="margin:0 auto;border-radius:24px">
+    <h1 style="text-align:center">Pint Log</h1>
+    <div id="authStep1">
+      <form id="emailForm">
+        <p class="muted">Enter your email and we'll send you a sign-in code. No password needed.</p>
+        <input id="email" type="email" inputmode="email" autocomplete="email" placeholder="you@example.com" required>
+        <button class="btn primary" type="submit" id="sendBtn">Send code</button>
+      </form>
+    </div>
+    <div id="authStep2" hidden>
+      <form id="codeForm">
+        <p class="muted">We sent a code to <b id="sentTo"></b>. Type it in, or tap the link in the email.</p>
+        <input id="code" class="code" inputmode="numeric" autocomplete="one-time-code" maxlength="10" placeholder="••••••" required>
+        <button class="btn primary" type="submit" id="verifyBtn">Sign in</button>
+        <button class="linkbtn" type="button" id="backBtn">Use a different email</button>
+      </form>
+    </div>
+    <div class="err" id="authErr" role="alert"></div>
+  </section>
+
+  <div id="app" class="wrap" hidden>
+    <div id="banner" class="banner" hidden></div>
+
+    <section id="v-log" class="wrap" style="gap:20px">
+      <div class="top"><h1>Pint Log</h1><span class="note" id="nightLabel"></span></div>
+      <div class="matrow">
+        <div class="mat" aria-label="Drinks tonight"><div><div class="big num" id="matCount">0</div><div class="lbl">tonight</div></div></div>
+        <div class="matinfo">
+          <div class="kv"><span>Units tonight</span><b class="num" id="tUnits">0.0</b></div>
+          <div class="kv"><span>Pints tonight</span><b class="num" id="tPints">0</b></div>
+          <div class="kv"><span>Spent tonight</span><b class="num" id="tSpend">£0.00</b></div>
+          <div class="kv" style="margin-top:4px"><span>This week</span><span class="num"><b id="wUnits">0.0</b> / 14 units</span></div>
+          <div class="meter" id="wMeter"><span style="width:0"></span></div>
+        </div>
+      </div>
+      <div>
+        <div class="eyebrow" style="margin-bottom:8px">Tap to log</div>
+        <div class="grid" id="quick"></div>
+      </div>
+      <button class="other" id="otherBtn">Something else, or log an earlier drink</button>
+      <div>
+        <div class="eyebrow" style="margin-bottom:8px">Tonight</div>
+        <div class="list" id="tonightList"></div>
+      </div>
+    </section>
+
+    <section id="v-report" class="wrap" hidden style="gap:16px">
+      <div class="top"><h1>Report</h1><button class="btn" id="csvBtn">Export CSV</button></div>
+      <div class="seg" id="periodSeg" role="group" aria-label="Period"></div>
+      <div class="tiles" id="tiles"></div>
+      <div class="card">
+        <div class="top"><h2>Units per week</h2><span class="note">last 12 weeks</span></div>
+        <div id="weekChart"></div>
+        <div class="note">The UK Chief Medical Officers' guideline is no more than 14 units a week, spread over 3 or more days.</div>
+      </div>
+      <div class="card"><h2>What you drank</h2><div id="cats" style="display:flex;flex-direction:column;gap:8px"></div></div>
+      <div class="card"><h2>By day of the week</h2><div id="dowChart"></div></div>
+    </section>
+
+    <section id="v-history" class="wrap" hidden style="gap:12px">
+      <div class="top"><h1>History</h1><span class="note" id="histCount"></span></div>
+      <div id="history" style="display:flex;flex-direction:column;gap:14px"></div>
+      <p class="note">A drinking day runs 5am to 5am, so a 1am pint counts towards the night before.</p>
+      <div class="acct"><span id="whoami"></span><button class="btn" id="signOutBtn">Sign out</button></div>
+    </section>
+  </div>
+
+  <nav class="tabs" id="tabs" aria-label="Sections" hidden><div class="in">
+    <button data-tab="log" aria-current="page">Log</button>
+    <button data-tab="report">Report</button>
+    <button data-tab="history">History</button>
+  </div></nav>
+
+  <div id="sheetHost"></div>
+  <div id="toastHost"></div>
+  <script type="module" src="/src/main.js"></script>
+</body>
+</html>
