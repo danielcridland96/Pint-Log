@@ -23,7 +23,7 @@ const DRINKS = [
   { id: 'lager', name: 'Lager', size: 'Pint', ml: 568, abv: 4.5, pint: 1, cat: 'Beer & cider' },
   { id: 'ale', name: 'Ale / bitter', size: 'Pint', ml: 568, abv: 4.0, pint: 1, cat: 'Beer & cider' },
   { id: 'ipa', name: 'IPA', size: 'Pint', ml: 568, abv: 5.5, pint: 1, cat: 'Beer & cider' },
-  { id: 'stout', name: 'Stout', size: 'Pint', ml: 568, abv: 4.2, pint: 1, cat: 'Beer & cider' },
+  { id: 'stout', name: 'Guinness', size: 'Pint', ml: 568, abv: 4.2, pint: 1, cat: 'Beer & cider' },
   { id: 'cider', name: 'Cider', size: 'Pint', ml: 568, abv: 4.5, pint: 1, cat: 'Beer & cider' },
   { id: 'half', name: 'Half', size: 'Half pint', ml: 284, abv: 4.5, pint: 0.5, cat: 'Beer & cider' },
   { id: 'bottle', name: 'Bottle / can', size: '330 ml', ml: 330, abv: 5, pint: 0, cat: 'Beer & cider' },
