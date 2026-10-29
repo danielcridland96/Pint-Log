@@ -1,9 +1,9 @@
 # Pint Log
 
-Tap-to-log drink tracker. Each person signs in with their email (a one-time code, no password) and sees only their own drinks, units, spend and reports.
+Tap-to-log drink tracker. Each person signs in with their email (tap the link we send, no password) and sees only their own drinks, units, spend and reports.
 
 - **Frontend:** Vite + vanilla JS, hosted on Vercel
-- **Sign-in and database:** Supabase (email one-time code, Postgres with Row Level Security)
+- **Sign-in and database:** Supabase (email sign-in link, Postgres with Row Level Security)
 
 ## 1. Supabase
 
@@ -11,15 +11,7 @@ Already done: the **pint-log** project (London, `dpxrzxyvisfxomauhlxp`) exists w
 
 Still to do in the Supabase dashboard:
 
-1. **Authentication → Sign In / Providers → Email**: make sure Email is enabled. You can turn **Confirm email** off, since the code itself proves the address.
-2. **Authentication → Emails → Templates → Magic Link**: replace the body with the template below, so the email shows a code people can type in as well as a link:
-
-   ```html
-   <h2>Your Pint Log sign-in code</h2>
-   <p style="font-size:28px;letter-spacing:6px;font-family:monospace"><b>{{ .Token }}</b></p>
-   <p>Or <a href="{{ .ConfirmationURL }}">tap here to sign in</a> on this device.</p>
-   ```
-
+1. **Authentication → Sign In / Providers → Email**: make sure Email is enabled. You can turn **Confirm email** off, since the sign-in link itself proves the address.
 ### Email sending limits
 
 Supabase's built-in email sender only allows a few emails an hour and is meant for testing. For a group of friends, connect your own sender under **Authentication → Emails → SMTP Settings**. [Resend](https://resend.com) has a free tier: verify a domain you own, create an API key, then use host `smtp.resend.com`, port `465`, username `resend`, password = the API key.
@@ -49,7 +41,7 @@ In Supabase **Authentication → URL Configuration**:
 
 ## 4. Share it
 
-Send people the link. They enter their email, type the code, and start logging. On iPhone, Safari → Share → **Add to Home Screen** makes it open like an app.
+Send people the link. They enter their email, tap the link in the email, and start logging. On iPhone, Safari → Share → **Add to Home Screen** makes it open like an app.
 
 ## Run locally
 

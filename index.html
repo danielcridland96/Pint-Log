@@ -23,16 +23,16 @@
     <h1 style="text-align:center">Pint Log</h1>
     <div id="authStep1">
       <form id="emailForm">
-        <p class="muted">Enter your email and we'll send you a sign-in code. No password needed.</p>
+        <p class="muted">Enter your email and we'll send you a sign-in link. No password needed.</p>
         <input id="email" type="email" inputmode="email" autocomplete="email" placeholder="you@example.com" required>
-        <button class="btn primary" type="submit" id="sendBtn">Send code</button>
+        <button class="btn primary" type="submit" id="sendBtn">Email me a link</button>
       </form>
     </div>
     <div id="authStep2" hidden>
-      <form id="codeForm">
-        <p class="muted">We sent a code to <b id="sentTo"></b>. Type it in, or tap the link in the email.</p>
-        <input id="code" class="code" inputmode="numeric" autocomplete="one-time-code" maxlength="10" placeholder="••••••" required>
-        <button class="btn primary" type="submit" id="verifyBtn">Sign in</button>
+      <form id="resendForm">
+        <p><b>Check your email.</b></p>
+        <p class="muted">We sent a sign-in link to <b id="sentTo"></b>. Open it on this phone and you'll be signed in. It can take a minute to arrive, so check your junk folder too.</p>
+        <button class="btn" type="submit" id="resendBtn">Send it again</button>
         <button class="linkbtn" type="button" id="backBtn">Use a different email</button>
       </form>
     </div>

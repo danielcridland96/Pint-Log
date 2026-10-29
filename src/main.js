@@ -15,7 +15,7 @@ if (!SUPABASE_URL || !SUPABASE_KEY) {
 }
 
 const sb = createClient(SUPABASE_URL, SUPABASE_KEY, {
-  auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true, flowType: 'pkce' },
+  auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true, flowType: 'implicit' },
 });
 
 /* ---------- drinks ---------- */
@@ -96,24 +96,27 @@ let pendingEmail = '';
 function authErr(msg) { $('#authErr').textContent = msg || ''; }
 function showAuthStep(n) { $('#authStep1').hidden = n !== 1; $('#authStep2').hidden = n !== 2; authErr(''); }
 
+async function sendLink(email, btn, label) {
+  btn.disabled = true; btn.textContent = 'Sending…'; authErr('');
+  const { error } = await sb.auth.signInWithOtp({ email, options: { shouldCreateUser: true, emailRedirectTo: window.location.origin } });
+  btn.disabled = false; btn.textContent = label;
+  if (error) { authErr(error.status === 429 ? 'Too many emails requested. Wait a few minutes and try again.' : "Couldn't send the email: " + error.message); return false; }
+  return true;
+}
 $('#emailForm').onsubmit = async (ev) => {
   ev.preventDefault();
   const email = $('#email').value.trim().toLowerCase();
   if (!email) return;
-  $('#sendBtn').disabled = true; $('#sendBtn').textContent = 'Sending…';
-  const { error } = await sb.auth.signInWithOtp({ email, options: { shouldCreateUser: true, emailRedirectTo: window.location.origin } });
-  $('#sendBtn').disabled = false; $('#sendBtn').textContent = 'Send code';
-  if (error) { authErr(error.status === 429 ? 'Too many codes requested. Wait a minute and try again.' : "Couldn't send the code: " + error.message); return; }
-  pendingEmail = email; $('#sentTo').textContent = email; $('#code').value = ''; showAuthStep(2); $('#code').focus();
+  if (await sendLink(email, $('#sendBtn'), 'Email me a link')) { pendingEmail = email; $('#sentTo').textContent = email; showAuthStep(2); }
 };
-$('#codeForm').onsubmit = async (ev) => {
+$('#resendForm').onsubmit = async (ev) => {
   ev.preventDefault();
-  const token = $('#code').value.replace(/\s/g, '');
-  $('#verifyBtn').disabled = true; $('#verifyBtn').textContent = 'Checking…';
-  const { error } = await sb.auth.verifyOtp({ email: pendingEmail, token, type: 'email' });
-  $('#verifyBtn').disabled = false; $('#verifyBtn').textContent = 'Sign in';
-  if (error) authErr("That code didn't work. Check it, or send a new one.");
+  if (await sendLink(pendingEmail, $('#resendBtn'), 'Send it again')) toast('Sent again');
 };
+// A failed or expired link comes back with an error in the address; explain it instead of showing a blank sign-in.
+const linkError = new URLSearchParams(location.hash.slice(1) || location.search.slice(1)).get('error_description')
+  ? 'That link has expired or was already used. Enter your email to get a new one.' : '';
+if (linkError) history.replaceState(null, '', location.pathname);
 $('#backBtn').onclick = () => showAuthStep(1);
 $('#signOutBtn').onclick = async () => { await sb.auth.signOut(); };
 
@@ -121,7 +124,7 @@ function setUser(u) {
   const changed = (u && u.id) !== (user && user.id);
   user = u;
   $('#v-auth').hidden = !!u; $('#app').hidden = !u; $('#tabs').hidden = !u;
-  if (!u) { entries = []; showAuthStep(1); return; }
+  if (!u) { entries = []; showAuthStep(1); if (linkError) authErr(linkError); return; }
   $('#whoami').textContent = 'Signed in as ' + (u.email || '');
   if (changed) { entries = []; render(); loadEntries(); }
 }
