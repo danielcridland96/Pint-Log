@@ -21,11 +21,16 @@
   <section id="v-auth" class="auth" hidden>
     <img src="/icon.svg" alt="" width="104" height="104" style="margin:0 auto;border-radius:24px">
     <h1 style="text-align:center">Pint Log</h1>
+    <div class="seg" role="tablist" aria-label="Sign in or create an account">
+      <button type="button" id="modeIn" aria-pressed="true">Sign in</button>
+      <button type="button" id="modeUp" aria-pressed="false">Create account</button>
+    </div>
     <form id="authForm">
-      <p class="muted">Sign in with your email and password. First time here? Enter your email and pick a password, and your log is set up.</p>
+      <p class="muted" id="authIntro">Welcome back. Sign in with your email and password.</p>
       <input id="email" type="email" inputmode="email" autocomplete="email" placeholder="you@example.com" required>
-      <input id="password" type="password" autocomplete="current-password" placeholder="Password (6+ characters)" minlength="6" maxlength="72" required>
-      <button class="btn primary" type="submit" id="signInBtn">Sign in</button>
+      <input id="password" type="password" autocomplete="current-password" placeholder="Password" minlength="6" maxlength="72" required>
+      <input id="password2" type="password" autocomplete="new-password" placeholder="Type the password again" maxlength="72" hidden>
+      <button class="btn primary" type="submit" id="authBtn">Sign in</button>
     </form>
     <div class="err" id="authErr" role="alert"></div>
     <p class="note">Forgot your password? Ask whoever shared Pint Log with you to reset it.</p>

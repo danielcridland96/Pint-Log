@@ -92,28 +92,45 @@ async function delE(id) {
 }
 
 /* ---------- auth ---------- */
-// Email + password. A first sign-in creates the account through the pl_register database
-// function, so no confirmation email is ever sent.
+// Email + password. "Create account" goes through the pl_register database function,
+// so no confirmation email is ever sent.
 function authErr(msg) { $('#authErr').textContent = msg || ''; }
+let authMode = 'in';
+function setAuthMode(m) {
+  authMode = m; const up = m === 'up';
+  $('#modeIn').setAttribute('aria-pressed', String(!up)); $('#modeUp').setAttribute('aria-pressed', String(up));
+  $('#authIntro').textContent = up ? 'Pick a password (6+ characters) and your log is set up straight away.' : 'Welcome back. Sign in with your email and password.';
+  $('#password').placeholder = up ? 'Choose a password' : 'Password';
+  $('#password').autocomplete = up ? 'new-password' : 'current-password';
+  $('#password2').hidden = !up; $('#password2').required = up;
+  $('#authBtn').textContent = up ? 'Create account' : 'Sign in';
+  authErr('');
+}
+$('#modeIn').onclick = () => setAuthMode('in');
+$('#modeUp').onclick = () => setAuthMode('up');
 
 $('#authForm').onsubmit = async (ev) => {
   ev.preventDefault();
   const email = $('#email').value.trim().toLowerCase();
   const password = $('#password').value;
-  const btn = $('#signInBtn');
+  const btn = $('#authBtn'); const label = btn.textContent;
   if (!email || password.length < 6) { authErr('Enter your email and a password of at least 6 characters.'); return; }
-  btn.disabled = true; btn.textContent = 'Signing in…'; authErr('');
+  if (authMode === 'up' && password !== $('#password2').value) { authErr("The two passwords don't match."); return; }
+  btn.disabled = true; btn.textContent = authMode === 'up' ? 'Creating…' : 'Signing in…'; authErr('');
   try {
-    let { error } = await sb.auth.signInWithPassword({ email, password });
-    if (error && (error.code === 'invalid_credentials' || error.status === 400)) {
+    if (authMode === 'up') {
       const { data: result, error: regErr } = await sb.rpc('pl_register', { p_email: email, p_password: password });
-      if (regErr) { authErr(/invalid_email/.test(regErr.message) ? "That email address doesn't look right." : "Couldn't set up your account. Try again."); return; }
-      if (result === 'exists') { authErr("That password isn't right for this email."); return; }
-      ({ error } = await sb.auth.signInWithPassword({ email, password }));
+      if (regErr) { authErr(/invalid_email/.test(regErr.message) ? "That email address doesn't look right." : "Couldn't create your account. Try again."); return; }
+      if (result === 'exists') { setAuthMode('in'); authErr('There is already an account for this email. Sign in with its password.'); return; }
     }
-    if (error) authErr(error.status === 429 ? 'Too many attempts. Wait a minute and try again.' : "Couldn't sign in: " + error.message);
+    const { error } = await sb.auth.signInWithPassword({ email, password });
+    if (error) {
+      if (error.status === 429) authErr('Too many attempts. Wait a minute and try again.');
+      else if (authMode === 'in' && (error.code === 'invalid_credentials' || error.status === 400)) authErr("Email or password isn't right. New here? Tap Create account.");
+      else authErr("Couldn't sign in: " + error.message);
+    }
   } finally {
-    btn.disabled = false; btn.textContent = 'Sign in';
+    btn.disabled = false; btn.textContent = label;
   }
 };
 $('#signOutBtn').onclick = async () => { await sb.auth.signOut(); };
