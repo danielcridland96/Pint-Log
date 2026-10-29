@@ -29,3 +29,6 @@ create policy "read own drinks"   on public.drinks for select to authenticated u
 create policy "add own drinks"    on public.drinks for insert to authenticated with check ((select auth.uid()) = user_id);
 create policy "edit own drinks"   on public.drinks for update to authenticated using ((select auth.uid()) = user_id) with check ((select auth.uid()) = user_id);
 create policy "delete own drinks" on public.drinks for delete to authenticated using ((select auth.uid()) = user_id);
+
+-- Email + password sign-up without a confirmation email: see the "email_password_register" migration
+-- (public.pl_register(email, password) → 'created' | 'password_set' | 'exists').

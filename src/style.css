@@ -123,7 +123,7 @@ label.f input,label.f select{font:inherit;font-size:16px;color:var(--ink);backgr
 .auth p{margin:0}
 .auth form{display:flex;flex-direction:column;gap:10px}
 .auth input{font:inherit;font-size:16px;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px;width:100%;box-sizing:border-box}
-.auth input.code{font-family:var(--f-num);letter-spacing:.3em;text-align:center;font-size:22px}
+
 .auth .err{color:var(--bad);font-size:.88rem}
 .linkbtn{border:0;background:transparent;color:var(--amber);font-weight:600;padding:4px 0;text-align:left}
 .acct{display:flex;justify-content:space-between;align-items:center;gap:10px;font-size:.85rem;color:var(--muted)}

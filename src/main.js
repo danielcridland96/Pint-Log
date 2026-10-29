@@ -15,7 +15,7 @@ if (!SUPABASE_URL || !SUPABASE_KEY) {
 }
 
 const sb = createClient(SUPABASE_URL, SUPABASE_KEY, {
-  auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true, flowType: 'implicit' },
+  auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true, flowType: 'pkce' },
 });
 
 /* ---------- drinks ---------- */
@@ -92,39 +92,37 @@ async function delE(id) {
 }
 
 /* ---------- auth ---------- */
-let pendingEmail = '';
+// Email + password. A first sign-in creates the account through the pl_register database
+// function, so no confirmation email is ever sent.
 function authErr(msg) { $('#authErr').textContent = msg || ''; }
-function showAuthStep(n) { $('#authStep1').hidden = n !== 1; $('#authStep2').hidden = n !== 2; authErr(''); }
 
-async function sendLink(email, btn, label) {
-  btn.disabled = true; btn.textContent = 'Sending…'; authErr('');
-  const { error } = await sb.auth.signInWithOtp({ email, options: { shouldCreateUser: true, emailRedirectTo: window.location.origin } });
-  btn.disabled = false; btn.textContent = label;
-  if (error) { authErr(error.status === 429 ? 'Too many emails requested. Wait a few minutes and try again.' : "Couldn't send the email: " + error.message); return false; }
-  return true;
-}
-$('#emailForm').onsubmit = async (ev) => {
+$('#authForm').onsubmit = async (ev) => {
   ev.preventDefault();
   const email = $('#email').value.trim().toLowerCase();
-  if (!email) return;
-  if (await sendLink(email, $('#sendBtn'), 'Email me a link')) { pendingEmail = email; $('#sentTo').textContent = email; showAuthStep(2); }
+  const password = $('#password').value;
+  const btn = $('#signInBtn');
+  if (!email || password.length < 6) { authErr('Enter your email and a password of at least 6 characters.'); return; }
+  btn.disabled = true; btn.textContent = 'Signing in…'; authErr('');
+  try {
+    let { error } = await sb.auth.signInWithPassword({ email, password });
+    if (error && (error.code === 'invalid_credentials' || error.status === 400)) {
+      const { data: result, error: regErr } = await sb.rpc('pl_register', { p_email: email, p_password: password });
+      if (regErr) { authErr(/invalid_email/.test(regErr.message) ? "That email address doesn't look right." : "Couldn't set up your account. Try again."); return; }
+      if (result === 'exists') { authErr("That password isn't right for this email."); return; }
+      ({ error } = await sb.auth.signInWithPassword({ email, password }));
+    }
+    if (error) authErr(error.status === 429 ? 'Too many attempts. Wait a minute and try again.' : "Couldn't sign in: " + error.message);
+  } finally {
+    btn.disabled = false; btn.textContent = 'Sign in';
+  }
 };
-$('#resendForm').onsubmit = async (ev) => {
-  ev.preventDefault();
-  if (await sendLink(pendingEmail, $('#resendBtn'), 'Send it again')) toast('Sent again');
-};
-// A failed or expired link comes back with an error in the address; explain it instead of showing a blank sign-in.
-const linkError = new URLSearchParams(location.hash.slice(1) || location.search.slice(1)).get('error_description')
-  ? 'That link has expired or was already used. Enter your email to get a new one.' : '';
-if (linkError) history.replaceState(null, '', location.pathname);
-$('#backBtn').onclick = () => showAuthStep(1);
 $('#signOutBtn').onclick = async () => { await sb.auth.signOut(); };
 
 function setUser(u) {
   const changed = (u && u.id) !== (user && user.id);
   user = u;
   $('#v-auth').hidden = !!u; $('#app').hidden = !u; $('#tabs').hidden = !u;
-  if (!u) { entries = []; showAuthStep(1); if (linkError) authErr(linkError); return; }
+  if (!u) { entries = []; $('#password').value = ''; return; }
   $('#whoami').textContent = 'Signed in as ' + (u.email || '');
   if (changed) { entries = []; render(); loadEntries(); }
 }

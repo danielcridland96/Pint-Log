@@ -1,20 +1,23 @@
 # Pint Log
 
-Tap-to-log drink tracker. Each person signs in with their email (tap the link we send, no password) and sees only their own drinks, units, spend and reports.
+Tap-to-log drink tracker. Each person signs in with their email and a password and sees only their own drinks, units, spend and reports.
 
 - **Frontend:** Vite + vanilla JS, hosted on Vercel
-- **Sign-in and database:** Supabase (email sign-in link, Postgres with Row Level Security)
+- **Sign-in and database:** Supabase (email + password, Postgres with Row Level Security)
 
 ## 1. Supabase
 
 Already done: the **pint-log** project (London, `dpxrzxyvisfxomauhlxp`) exists with the `drinks` table and privacy rules from `supabase/schema.sql`. The project URL and anon key are in `.env`.
 
-Still to do in the Supabase dashboard:
+Sign-in needs no emails. A person's first sign-in calls the `pl_register` database function, which creates their account with the password they picked; after that it's a normal Supabase password sign-in. Nothing needs setting in the Supabase dashboard.
 
-1. **Authentication → Sign In / Providers → Email**: make sure Email is enabled. You can turn **Confirm email** off, since the sign-in link itself proves the address.
-### Email sending limits
+**Forgotten password:** there's no reset email. Clear it in Supabase (**SQL Editor**):
 
-Supabase's built-in email sender only allows a few emails an hour and is meant for testing. For a group of friends, connect your own sender under **Authentication → Emails → SMTP Settings**. [Resend](https://resend.com) has a free tier: verify a domain you own, create an API key, then use host `smtp.resend.com`, port `465`, username `resend`, password = the API key.
+```sql
+update auth.users set encrypted_password = '' where email = 'their@email.com';
+```
+
+Their next sign-in then sets a new password. Their drinks are kept.
 
 ## 2. Deploy to Vercel
 
@@ -32,16 +35,9 @@ vercel env add VITE_SUPABASE_ANON_KEY
 vercel --prod
 ```
 
-## 3. Point Supabase at your Vercel address
+## 3. Share it
 
-In Supabase **Authentication → URL Configuration**:
-
-- **Site URL**: your Vercel address, for example `https://pint-log.vercel.app` (or your own domain)
-- **Redirect URLs**: add the same address, plus `http://localhost:5173` for local testing
-
-## 4. Share it
-
-Send people the link. They enter their email, tap the link in the email, and start logging. On iPhone, Safari → Share → **Add to Home Screen** makes it open like an app.
+Send people the link. They enter their email, pick a password, and start logging. On iPhone, Safari → Share → **Add to Home Screen** makes it open like an app.
 
 ## Run locally
 
