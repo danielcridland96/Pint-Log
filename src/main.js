@@ -19,21 +19,24 @@ const sb = createClient(SUPABASE_URL, SUPABASE_KEY, {
 });
 
 /* ---------- drinks ---------- */
+// price = typical London pub price (Nov 2026), used until you log that drink with your own price.
+// Pints: median of ~1,600 crowdsourced London pub prices (pint-prices.com). Others: median of a small
+// sample of 2026 London pub/bar menus. See README for sources.
 const DRINKS = [
-  { id: 'lager', name: 'Lager', size: 'Pint', ml: 568, abv: 4.5, pint: 1, cat: 'Beer & cider' },
-  { id: 'ale', name: 'Ale / bitter', size: 'Pint', ml: 568, abv: 4.0, pint: 1, cat: 'Beer & cider' },
-  { id: 'ipa', name: 'IPA', size: 'Pint', ml: 568, abv: 5.5, pint: 1, cat: 'Beer & cider' },
-  { id: 'stout', name: 'Guinness', size: 'Pint', ml: 568, abv: 4.1, pint: 1, cat: 'Beer & cider' },
-  { id: 'cider', name: 'Cider', size: 'Pint', ml: 568, abv: 4.5, pint: 1, cat: 'Beer & cider' },
-  { id: 'half', name: 'Half', size: 'Half pint', ml: 284, abv: 4.5, pint: 0.5, cat: 'Beer & cider' },
-  { id: 'bottle', name: 'Bottle / can', size: '330 ml', ml: 330, abv: 5, pint: 0, cat: 'Beer & cider' },
-  { id: 'wine175', name: 'Wine', size: '175 ml glass', ml: 175, abv: 12.5, cat: 'Wine' },
-  { id: 'wine250', name: 'Wine', size: '250 ml glass', ml: 250, abv: 12.5, cat: 'Wine' },
-  { id: 'fizz', name: 'Prosecco', size: '125 ml', ml: 125, abv: 11, cat: 'Wine' },
-  { id: 'single', name: 'Spirit', size: 'Single 25 ml', ml: 25, abv: 40, cat: 'Spirits' },
-  { id: 'double', name: 'Spirit', size: 'Double 50 ml', ml: 50, abv: 40, cat: 'Spirits' },
-  { id: 'cocktail', name: 'Cocktail', size: 'Typical', ml: 200, abv: 10, cat: 'Cocktails' },
-  { id: 'af', name: 'Alcohol-free', size: 'Pint', ml: 568, abv: 0, pint: 0, cat: 'Alcohol-free' },
+  { id: 'lager', name: 'Lager', size: 'Pint', ml: 568, abv: 4.5, pint: 1, cat: 'Beer & cider', price: 6.40 },
+  { id: 'ale', name: 'Ale / bitter', size: 'Pint', ml: 568, abv: 4.0, pint: 1, cat: 'Beer & cider', price: 5.70 },
+  { id: 'ipa', name: 'IPA', size: 'Pint', ml: 568, abv: 5.5, pint: 1, cat: 'Beer & cider', price: 7.40 },
+  { id: 'stout', name: 'Guinness', size: 'Pint', ml: 568, abv: 4.1, pint: 1, cat: 'Beer & cider', price: 6.40 },
+  { id: 'cider', name: 'Cider', size: 'Pint', ml: 568, abv: 4.5, pint: 1, cat: 'Beer & cider', price: 6.65 },
+  { id: 'half', name: 'Half', size: 'Half pint', ml: 284, abv: 4.5, pint: 0.5, cat: 'Beer & cider', price: 3.40 },
+  { id: 'bottle', name: 'Bottle / can', size: '330 ml', ml: 330, abv: 5, pint: 0, cat: 'Beer & cider', price: 5.95 },
+  { id: 'wine175', name: 'Wine', size: '175 ml glass', ml: 175, abv: 12.5, cat: 'Wine', price: 9.05 },
+  { id: 'wine250', name: 'Wine', size: '250 ml glass', ml: 250, abv: 12.5, cat: 'Wine', price: 10.85 },
+  { id: 'fizz', name: 'Prosecco', size: '125 ml', ml: 125, abv: 11, cat: 'Wine', price: 9.70 },
+  { id: 'single', name: 'Spirit', size: 'Single 25 ml', ml: 25, abv: 40, cat: 'Spirits', price: 5.75 },
+  { id: 'double', name: 'Spirit', size: 'Double 50 ml', ml: 50, abv: 40, cat: 'Spirits', price: 11.50 },
+  { id: 'cocktail', name: 'Cocktail', size: 'Typical', ml: 200, abv: 10, cat: 'Cocktails', price: 11.95 },
+  { id: 'af', name: 'Alcohol-free', size: 'Pint', ml: 568, abv: 0, pint: 0, cat: 'Alcohol-free', price: 6.60 },
   { id: 'custom', name: 'Other', size: 'Custom', ml: 330, abv: 5, pint: 0, cat: 'Other' },
 ];
 const QUICK = ['lager', 'ale', 'ipa', 'stout', 'cider', 'half', 'bottle', 'wine175', 'wine250', 'fizz', 'single', 'double', 'cocktail', 'af'];
@@ -148,7 +151,7 @@ sb.auth.getSession().then(({ data }) => setUser(data.session ? data.session.user
 document.addEventListener('visibilitychange', () => { if (!document.hidden && user) loadEntries(); });
 
 /* ---------- logging ---------- */
-function lastPrice(type) { const e = entries.find((x) => x.type === type && x.price > 0); return e ? e.price : 0; }
+function lastPrice(type) { const e = entries.find((x) => x.type === type && x.price > 0); return e ? e.price : (D[type] && D[type].price) || 0; }
 function makeEntry(type, o = {}) {
   const d = D[type]; const ml = o.ml ?? d.ml, abv = o.abv ?? d.abv;
   return { type, label: o.label || d.name, size: o.size || d.size, ml: +ml, abv: +abv, units: units(ml, abv), price: +(o.price ?? lastPrice(type)) || 0, note: o.note || '', at: o.at || Date.now() };
